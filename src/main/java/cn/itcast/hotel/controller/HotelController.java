@@ -5,6 +5,8 @@ import cn.itcast.hotel.pojo.RequestParameter;
 import cn.itcast.hotel.service.IHotelService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * @author xuyitjuseu
  */
@@ -31,5 +33,10 @@ public class HotelController {
     @GetMapping("/ad")
     public PageResult functionScore(RequestParameter param) {
         return hotelService.functionScoreQuery(param);
+    }
+
+    @GetMapping("/suggestion")
+    public List<String> suggestion(String key) {
+        return hotelService.suggestion(key);
     }
 }

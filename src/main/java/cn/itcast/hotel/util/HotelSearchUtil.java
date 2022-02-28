@@ -16,6 +16,8 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.List;
 public class HotelSearchUtil {
 
     public static final String INDEX_NAME = "hotel2";
+    public static final String NEW_INDEX_NAME = "hotel";
 
     /**
      * 封装PageResult
@@ -125,5 +128,21 @@ public class HotelSearchUtil {
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder(QueryBuilders.termQuery("isAd", true),
                         ScoreFunctionBuilders.weightFactorFunction(10))
         });
+    }
+
+    /**
+     * 处理自动补全结果并封装
+     * @param response SearchResponse
+     * @param name 自定义的自动补全suggest查询名称
+     * @return 公共返回对象
+     */
+    public static List<String> resolveSuggestions(SearchResponse response, String name) {
+        Suggest suggest = response.getSuggest();
+        CompletionSuggestion suggestion = suggest.getSuggestion(name);
+        List<String> results = new ArrayList<>();
+        for (CompletionSuggestion.Entry.Option option : suggestion.getOptions()) {
+            results.add(option.getText().string());
+        }
+        return results;
     }
 }

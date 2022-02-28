@@ -3,6 +3,10 @@ package cn.itcast.hotel.pojo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author xuyitjuseu
  */
@@ -24,7 +28,14 @@ public class HotelDoc {
      * 根据距离排序的距离值
      */
     private Object distance;
+    /**
+     * 重新算分
+     */
     private Boolean isAd;
+    /**
+     * 自动补全
+     */
+    private List<String> suggestion;
 
     public HotelDoc(Hotel hotel) {
         this.id = hotel.getId();
@@ -38,5 +49,15 @@ public class HotelDoc {
         this.business = hotel.getBusiness();
         this.location = hotel.getLatitude() + ", " + hotel.getLongitude();
         this.pic = hotel.getPic();
+        String regex = "/";
+        if (this.business.contains(regex)) {
+            String[] strings = this.business.split(regex);
+            List<String> list = new ArrayList<>();
+            list.add(this.brand);
+            list.addAll(Arrays.asList(strings));
+            this.suggestion = list;
+        } else {
+            this.suggestion = Arrays.asList(this.brand, this.business);
+        }
     }
 }

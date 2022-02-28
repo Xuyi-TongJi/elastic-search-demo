@@ -8,6 +8,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * @author xuyitjuseu
+ */
 @MapperScan("cn.itcast.hotel.mapper")
 @SpringBootApplication
 public class HotelDemoApplication {

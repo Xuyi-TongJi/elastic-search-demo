@@ -5,7 +5,6 @@ import cn.itcast.hotel.pojo.Hotel;
 import cn.itcast.hotel.pojo.HotelDoc;
 import cn.itcast.hotel.service.IHotelService;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -29,6 +28,10 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,10 +148,10 @@ class HotelDemoApplicationTests {
     void testBulk() {
         BulkRequest request = new BulkRequest();
         List<Hotel> hotelList
-                = hotelService.list(new QueryWrapper<Hotel>().like("name", "如家"));
+                = hotelService.list();
         for (Hotel hotel: hotelList) {
             HotelDoc hotelDoc = new HotelDoc(hotel);
-            request.add(new IndexRequest("hotel2").id(hotelDoc.getId().toString())
+            request.add(new IndexRequest("hotel").id(hotelDoc.getId().toString())
                     .source(JSON.toJSONString(hotelDoc), XContentType.JSON));
         }
         try {
@@ -298,6 +301,33 @@ class HotelDemoApplicationTests {
                 String key = bucket.getKeyAsString();
                 long docCount = bucket.getDocCount();
                 System.out.println(key + "  " + docCount);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 自动补全测试
+     */
+    @Test
+    void testSuggest() {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().suggest(new SuggestBuilder().addSuggestion(
+                // addSuggestion方法中接收两个参数
+                "suggestions",
+                SuggestBuilders.completionSuggestion("suggestion")
+                        .prefix("hz").skipDuplicates(true).size(10)
+        ));
+        try {
+            SearchResponse response = rc.search(request, RequestOptions.DEFAULT);
+            // resolve response
+            Suggest suggest = response.getSuggest();
+            // 根据查询名称(addSuggestion中的第一个参数)
+            CompletionSuggestion suggestion = suggest.getSuggestion("suggestions");
+            for (CompletionSuggestion.Entry.Option option : suggestion.getOptions()) {
+                String text = option.getText().string();
+                System.out.println(text);
             }
         } catch (IOException e) {
             e.printStackTrace();
